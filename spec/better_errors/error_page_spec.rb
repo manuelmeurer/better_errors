@@ -2,6 +2,21 @@ require "spec_helper"
 
 class ErrorPageTestIgnoredClass; end
 
+module I18n; end unless defined?(I18n)
+
+unless I18n.const_defined?(:MissingTranslationData)
+  class I18n::MissingTranslationData < StandardError
+    attr_reader :locale, :key, :options
+
+    def initialize(locale:, key:, scope: nil, message: nil)
+      @locale = locale
+      @key = key
+      @options = { scope: scope }
+      super(message || "Translation missing: #{locale}.#{key}")
+    end
+  end
+end
+
 module BetterErrors
   describe ErrorPage do
     # It's necessary to use HTML matchers here that are specific as possible.
@@ -35,6 +50,36 @@ module BetterErrors
 
     it "includes the exception class" do
       expect(response).to have_tag('.exception h2', /ZeroDivisionError/)
+    end
+
+    context "when the exception is a missing translation" do
+      let(:exception) do
+        I18n::MissingTranslationData.new(
+          locale: :en,
+          key: :text,
+          scope: %i[users talk_suggestion_wizards success],
+          message: "Translation missing: en.users.talk_suggestion_wizards.success.text"
+        )
+      end
+
+      around do |example|
+        original_root = BetterErrors.application_root
+        original_editor = BetterErrors.editor
+
+        BetterErrors.application_root = "/app"
+        BetterErrors.editor = proc { |file, line| "editor://#{file}:#{line}" }
+
+        example.run
+      ensure
+        BetterErrors.application_root = original_root
+        BetterErrors.editor = original_editor
+      end
+
+      it "includes a link to the locale file" do
+        expect(response).to have_tag(".exception h2") do
+          with_tag("a[href='editor:///app/config/locales/users.en.yml:1']", text: "config/locales/users.en.yml")
+        end
+      end
     end
 
     context 'when ActiveSupport::ActionableError is available' do
