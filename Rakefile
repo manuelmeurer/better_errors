@@ -41,14 +41,11 @@ end
 namespace :style do
   desc "Build main.css from the SASS sources"
   task :build do
-    css = BetterErrors::ErrorPageStyle.compiled_css(true)
-    File.open(File.expand_path("lib/better_errors/templates/main.css", File.dirname(__FILE__)), "w") do |f|
-      f.write(css)
-    end
+    BetterErrors::ErrorPageStyle.compile_css(deploy: true)
   end
 
   desc "Remove main.css so that the SASS sources will be used directly"
   task :develop do
-    File.unlink File.expand_path("lib/better_errors/templates/main.css", File.dirname(__FILE__))
+    BetterErrors::ErrorPageStyle.remove_style_file
   end
 end

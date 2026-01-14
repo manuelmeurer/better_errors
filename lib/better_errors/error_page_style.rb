@@ -1,7 +1,8 @@
 module BetterErrors
-  # @private
   module ErrorPageStyle
-    def self.compiled_css(for_deployment = false)
+    extend self
+
+    def compile_css(deploy: false)
       begin
         require "sass-embedded"
       rescue LoadError
@@ -18,24 +19,33 @@ module BetterErrors
       end
 
       style_dir = File.expand_path("style", File.dirname(__FILE__))
-      style_file = "#{style_dir}/main.scss"
+      sass_file = "#{style_dir}/main.scss"
 
-      Sass
+      css = Sass
         .compile(
-          style_file,
-          style: for_deployment ? :compressed : :expanded,
+          sass_file,
+          style: deploy ? :compressed : :expanded,
           load_paths: [style_dir]
         ).css
+
+      File.write(style_file, css)
+
+      css
     end
 
-    def self.style_tag(csp_nonce)
-      style_file = File.expand_path("templates/main.css", File.dirname(__FILE__))
-      css = if File.exist?(style_file)
-        File.open(style_file).read
-      else
-        compiled_css(false)
-      end
+    def style_tag(csp_nonce)
+      css =
+        File.exist?(style_file) ?
+          File.read(style_file) :
+          compile_css
+
       "<style type='text/css' nonce='#{csp_nonce}'>\n#{css}\n</style>"
     end
+
+    def remove_style_file
+      File.unlink(style_file)
+    end
+
+    def style_file = File.expand_path("templates/main.css", File.dirname(__FILE__))
   end
 end
