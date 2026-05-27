@@ -10,6 +10,7 @@ module BetterErrors
       { symbols: [:rubymine], sniff: /mine/i, url: "x-mine://open?file=%{file}&line=%{line}" },
       { symbols: [:sublime, :subl, :st], sniff: /subl/i, url: "subl://open?url=file://%{file}&line=%{line}" },
       { symbols: [:textmate, :txmt, :tm], sniff: /mate/i, url: "txmt://open?url=file://%{file}&line=%{line}" },
+      { symbols: [:zed], sniff: /zed/i, url: "zed://file/%{file}:%{line}" },
       { symbols: [:vscode, :code], sniff: /code/i, url: "vscode://file/%{file}:%{line}" },
       { symbols: [:vscodium, :codium], sniff: /codium/i, url: "vscodium://file/%{file}:%{line}" },
     ]

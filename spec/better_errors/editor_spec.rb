@@ -176,6 +176,24 @@ RSpec.describe BetterErrors::Editor do
         end
       end
     end
+
+    ["zed", "/usr/local/bin/zed --wait"].each do |command|
+      context "when editor command is '#{command}'" do
+        let(:command_line) { command }
+
+        it "uses zed:// scheme" do
+          expect(subject.url("file", 42)).to start_with("zed://")
+        end
+      end
+    end
+
+    context "when editor command includes zed and code" do
+      let(:command_line) { "zed-code" }
+
+      it "prefers zed over vscode" do
+        expect(subject.url("file", 42)).to start_with("zed://")
+      end
+    end
   end
 
   describe ".editor_from_symbol" do
@@ -226,6 +244,16 @@ RSpec.describe BetterErrors::Editor do
 
         it "uses txmt:// scheme" do
           expect(subject.url("file", 42)).to start_with("txmt://")
+        end
+      end
+    end
+
+    [:zed].each do |symbol|
+      context "when symbol is '#{symbol}'" do
+        let(:symbol) { symbol }
+
+        it "uses zed:// scheme" do
+          expect(subject.url("file", 42)).to start_with("zed://")
         end
       end
     end
